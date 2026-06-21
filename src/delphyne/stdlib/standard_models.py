@@ -9,6 +9,7 @@ from typing import Any, Literal
 
 from delphyne.stdlib import models as md
 from delphyne.stdlib.openai_api import OpenAICompatibleModel
+from delphyne.stdlib.claude_api import ClaudeCompatibleModel
 
 #####
 ##### Data about standard models
@@ -37,9 +38,19 @@ type GeminiModelName = Literal[
     "gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite"
 ]
 
+type KitModelName = Literal[
+    "azure.gpt-4.1-mini",
+]
+
+type ClaudeModelName = Literal[
+    "claude-fable-5", "claude-mythos-5", "claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5"
+]
+
 type StandardModelName = (
-    OpenAIModelName | MistralModelName | DeepSeekModelName | GeminiModelName
+    OpenAIModelName | MistralModelName | DeepSeekModelName | GeminiModelName | ClaudeModelName
 )
+
+
 
 PRICING: dict[str, tuple[float, float, float]] = {
     "gpt-5.2": (1.75, 0.175, 14.00),
@@ -64,6 +75,12 @@ PRICING: dict[str, tuple[float, float, float]] = {
     "gemini-2.5-pro": (1.25, 0.31, 10.00),
     "gemini-2.5-flash": (0.30, 0.075, 2.50),
     "gemini-2.5-flash-lite": (0.10, 0.025, 0.40),
+
+    "claude-fable-5": (10, 1, 50),
+    "claude-mythos-5": (10, 1, 50),
+    "claude-opus-4-8": (5, 0.5, 25),
+    "claude-sonnet-4-6": (3, 0.3, 15),
+    "claude-haiku-4-5": (1, 0.1, 5)
 }
 
 
@@ -76,6 +93,8 @@ def test_pricing_dict_exhaustiveness():
             *_values(MistralModelName),
             *_values(DeepSeekModelName),
             *_values(GeminiModelName),
+            *_values(KitModelName),
+            *_values(ClaudeModelName)
         ]
     )
     not_in_pricing = literal_values - pricing_keys
@@ -168,6 +187,46 @@ def _openai_compatible_model(
         pricing=pricing,
     )
 
+def kit_model(model: KitModelName | str,
+    options: md.RequestOptions | None = None,
+    *,
+    pricing: md.ModelPricing | None | Literal["auto"] = "auto",
+    model_class: str | None = None):
+    """Obtain a standard model from KIT Toolbox."""
+    return _openai_compatible_model(
+        model,
+        options=options,
+        pricing=pricing,
+        model_class=model_class,
+        base_url="https://ki-toolbox.scc.kit.edu/api",
+        api_key_env_var="KIT_TOOLBOX_API_KEY",
+    )
+
+def claude_model(model: ClaudeModelName | str,
+    options: md.RequestOptions | None = None,
+    *,
+    pricing: md.ModelPricing | None | Literal["auto"] = "auto",
+    model_class: str | None = None):
+    api_key = os.getenv("CLAUDE_API_KEY")
+    assert api_key is not None, (
+        f"Please set environment variable {"CLAUDE_API_KEY"}."
+    )
+    if pricing == "auto":
+        pricing = _get_pricing(_longest_standard_model_prefix_or_self(model))
+        if pricing is None:
+            raise ValueError(
+                f"Pricing information could not be inferred for {model}."
+            )
+    all_options: md.RequestOptions = {"model": model}
+    if options is not None:
+        all_options.update(options)
+    return ClaudeCompatibleModel(
+        base_url="https://api.anthropic.com",
+        api_key=api_key,
+        options=all_options,
+        model_class=model_class,
+        pricing=pricing,
+    )
 
 def openai_model(
     model: OpenAIModelName | str,
@@ -300,6 +359,7 @@ def standard_model(
     mistral_models = _values(MistralModelName)
     deepseek_models = _values(DeepSeekModelName)
     gemini_models = _values(GeminiModelName)
+    kit_models = _values(KitModelName)
 
     prefix = _longest_standard_model_prefix_or_self(model)
 
@@ -311,6 +371,8 @@ def standard_model(
         make_model = deepseek_model
     elif prefix in gemini_models:
         make_model = gemini_model
+    elif prefix in kit_models:
+        make_model = kit_model
     else:
         raise ValueError(
             f"Failed to infer provider for model: {model}.\n"

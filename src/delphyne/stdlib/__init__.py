@@ -84,6 +84,7 @@ from delphyne.stdlib.standard_models import (
     openai_model,
     gemini_model,
     standard_model,
+    kit_model,
 )
 from delphyne.stdlib.tasks import (
     Command,

@@ -5,3 +5,4 @@ delphyne.egg-info
 .DS_Store
 __pycache__
 *.h5.lock
+.venv

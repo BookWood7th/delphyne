@@ -27,58 +27,71 @@ def translate_chat(
     def translate(msg: md.ChatMessage) -> anthropicTypes.MessageParam:
         match msg:
             case md.SystemMessage(content=content):
-                return {"role": "system", "content": content}
-            case md.UserMessage(content=content):
-                return {"role": "user", "content": content}
-            case md.AssistantMessage(answer=answer):
-                tool_use_block = None
-                if answer.tool_calls:
-                    tool_use_block = [
+                return {"role": "system", "content": [
                         {
+                            "type": "text",
+                            "text": content
+                        }
+                    ]}
+            case md.UserMessage(content=content):
+                return {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": content
+                        }
+                    ]
+                }
+
+            case md.AssistantMessage(answer=answer):
+
+                content_blocks = []
+
+                # text / structured output
+                if isinstance(answer.content, str):
+                    content_blocks.append({
+                        "type": "text",
+                        "text": answer.content,
+                    })
+                else:
+                    content_blocks.append({
+                        "type": "text",
+                        "text": json.dumps(
+                            answer.content.structured,
+                            indent=2,
+                        ),
+                    })
+
+                # tool calls → tool_use blocks
+                if answer.tool_calls:
+                    for call in answer.tool_calls:
+                        content_blocks.append({
                             "type": "tool_use",
                             "id": gen.get_id(call),
                             "name": call.name,
-                            "input": json.dumps(call.args, indent=2)
-                        }
-                        for call in answer.tool_calls
-                    ]
+                            "input": call.args,   # ✅ FIXED
+                        })
 
-                if isinstance(answer.content, str):
-                    content = [
-                        {
-                            "type": "text",
-                            "text": answer.content
-                        }                            
-                    ]
-                    if tool_use_block:
-                        for tool_use in tool_use_block:
-                            content.append(tool_use)
-                    content = json.dumps(content, indent=2)
-                else:
-                    # We serialize the structured answer
-                    content = json.dumps(answer.content.structured, indent=2)
-                
-                if answer.justification is not None:
-                #Not supported by Claude
-                    pass
-                #    content += f"\n\n{answer.justification}"
-                res: anthropicTypes.MessageParam = {
+                return {
                     "role": "assistant",
-                    "content": content,
+                    "content": content_blocks,
                 }
-                return res
+
             case md.ToolMessage(call=call, result=result):
+
                 if isinstance(result, str):
                     content = result
                 else:
                     content = pretty_yaml(result.structured)
+
                 return {
                     "role": "user",
                     "content": [
                         {
                             "type": "tool_result",
                             "tool_use_id": gen.get_id(call),
-                            "content": content
+                            "content": content,
                         }
                     ]
                 }
@@ -228,13 +241,20 @@ class ClaudeCompatibleModel(md.LLM):
         
         tool_choice = _convert_tool_choice(options.get("tool_choice", None))
 
+        system_messages = [message["content"] for message in translate_chat(req.chat) if (message["role"] == "system")]
+        if len(system_messages) > 1:
+            raise "More than one system message. Messages were:+\n" + "\n".join(str(translate_chat(req.chat)))
+        chat_messages = [message for message in translate_chat(req.chat) if (message["role"] != "system")]
+        
+
         try:
             anthropicTypes.ToolChoiceParam
             options.get("tool_choice")
             response: anthropicTypes.message.Message = client.messages.create(
                 model=options["model"],
-                messages=translate_chat(req.chat),
-                max_tokens=options.get("max_completion_tokens", 0),
+                system=system_messages[0],
+                messages=chat_messages,
+                max_tokens=options.get("max_completion_tokens", 1000),
                 temperature=options.get("temperature", omit),
                 tools=tools if tools else omit,
                 tool_choice=tool_choice

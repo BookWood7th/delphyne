@@ -360,6 +360,7 @@ def standard_model(
     deepseek_models = _values(DeepSeekModelName)
     gemini_models = _values(GeminiModelName)
     kit_models = _values(KitModelName)
+    claude_models = _values(ClaudeModelName)
 
     prefix = _longest_standard_model_prefix_or_self(model)
 
@@ -373,6 +374,8 @@ def standard_model(
         make_model = gemini_model
     elif prefix in kit_models:
         make_model = kit_model
+    elif prefix in claude_models:
+        make_model = claude_model
     else:
         raise ValueError(
             f"Failed to infer provider for model: {model}.\n"

@@ -76,6 +76,13 @@ PRICING: dict[str, tuple[float, float, float]] = {
     "gemini-2.5-flash": (0.30, 0.075, 2.50),
     "gemini-2.5-flash-lite": (0.10, 0.025, 0.40),
 
+    "azure.gpt-5": (1.38, 0.138, 11.00),
+    "azure.gpt-5-mini": (0.28, 0.028, 2.20),
+    "azure.gpt-5-nano": (0.06, 0.006, 0.44),
+    "azure.gpt-5.1": (1.38, 0.138, 11.00),
+    "azure.gpt-5.4": (2.76, 0.276, 16.50),
+    "azure.gpt-5.5": (5.50, 0.55, 33.00),
+
     "claude-fable-5": (10, 1, 50),
     "claude-mythos-5": (10, 1, 50),
     "claude-opus-4-8": (5, 0.5, 25),

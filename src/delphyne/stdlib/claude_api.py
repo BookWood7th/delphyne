@@ -261,6 +261,7 @@ class ClaudeCompatibleModel(md.LLM):
             )
         except (anthropic.RateLimitError, anthropic.APITimeoutError) as e:
             raise md.LLMBusyException(e)
+        #TODO: better debugging for wrong format errors?
         outputs: list[md.LLMOutput] = []
         log: list[md.LLMResponseLogItem] = []
 

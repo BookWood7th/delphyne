@@ -39,7 +39,35 @@ type GeminiModelName = Literal[
 ]
 
 type KitModelName = Literal[
+    "google.claude-haiku-4.5",
+    "google.claude-opus-4.8",
+    "google.claude-sonnet-4.6",
+    "google.gemini-2.5-flash",
+    "google.gemini-2.5-flash-lite",
+    "google.gemini-2.5-pro",
+    "google.gemini-3.1-flash-lite",
+    "google.gemini-3.5-flash",
+    "kit.gemma4-31b-it",
+    "azure.gpt-4.1",
     "azure.gpt-4.1-mini",
+    "azure.gpt-4.1-nano",
+    "azure.gpt-5",
+    "azure.gpt-5-mini",
+    "azure.gpt-5-nano",
+    "azure.gpt-5.1",
+    "azure.gpt-5.4",
+    "azure.gpt-5.5",
+    "kit.gpt-oss-120b",
+    "kit.flux.2-dev",
+    "kit.qwen3-embedding-8b",
+    "kit.qwen3-reranker-8b",
+    "kit.voxtral-4b-tts-2603",
+    "kit.whisper-large-v3",
+    "kit.minimax-m2.7-229b",
+    "kit.mistral-small-4-119b-a8b",
+    "azure.o3",
+    "azure.o4-mini",
+    "kit.qwen3.5-397b-A17b",
 ]
 
 type ClaudeModelName = Literal[
@@ -76,6 +104,8 @@ PRICING: dict[str, tuple[float, float, float]] = {
     "gemini-2.5-flash": (0.30, 0.075, 2.50),
     "gemini-2.5-flash-lite": (0.10, 0.025, 0.40),
 
+
+    ## KIT LLM Toolbox external
     "azure.gpt-5": (1.38, 0.138, 11.00),
     "azure.gpt-5-mini": (0.28, 0.028, 2.20),
     "azure.gpt-5-nano": (0.06, 0.006, 0.44),

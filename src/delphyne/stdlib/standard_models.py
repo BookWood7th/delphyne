@@ -105,6 +105,13 @@ PRICING: dict[str, tuple[float, float, float]] = {
     "gemini-2.5-flash-lite": (0.10, 0.025, 0.40),
 
 
+    # Guessed inaccurate pricing for KIT models, as none provided for self hosted
+    "kit.qwen3.5-397b-A17b": (0.30, 0.05, 1.00),
+    "kit.mistral-small-4-119b-a8b": (0.15, 0.02, 0.60),
+    "kit.minimax-m2.7-229b": (0.20, 0.03, 1.00),
+
+
+
     ## KIT LLM Toolbox external
     "azure.gpt-5": (1.38, 0.138, 11.00),
     "azure.gpt-5-mini": (0.28, 0.028, 2.20),

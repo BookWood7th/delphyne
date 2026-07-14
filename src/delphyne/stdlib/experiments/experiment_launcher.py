@@ -306,7 +306,7 @@ class Experiment[C: ExperimentConfig]:
 
         Return `self`, so as to allow chaining.
         """
-        if not self._dir_exists():
+        if not self._state_exists():
             # If we create the experiment for the first time
             output_dir = self.absolute_output_dir
             print(f"Creating experiment directory: {output_dir}.")
@@ -737,11 +737,16 @@ class Experiment[C: ExperimentConfig]:
             self.absolute_output_dir.exists()
             and self.absolute_output_dir.is_dir()
         )
+    
+    def _state_exists(self) -> bool:
+        return (self.absolute_output_dir / EXPERIMENT_STATE_FILE).exists()
 
     def _state_type(self) -> type[ExperimentState[C]]:
         return ExperimentState[self.config_class]
 
     def _load_state(self) -> ExperimentState[C] | None:
+        if not self._state_exists():
+            return None
         with open(self.absolute_output_dir / EXPERIMENT_STATE_FILE, "r") as f:
             parsed = yaml.safe_load(f)
             return pydantic_load(self._state_type(), parsed)

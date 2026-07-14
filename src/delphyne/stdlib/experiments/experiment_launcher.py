@@ -4,6 +4,7 @@ A utility class for defining, launching and managing experiments.
 
 import json
 import multiprocessing as mp
+import shutil
 import threading
 import uuid
 from collections.abc import Callable, Sequence
@@ -904,10 +905,8 @@ def _run_config(
     threading.Thread(target=monitor).start()
 
     # Create and launch the main command
-    for f in (STATUS_FILE, RESULT_FILE, LOG_FILE):
-        file_path = config_dir / f
-        if file_path.exists():
-            file_path.unlink(missing_ok=True)
+    if config_dir.exists():
+        shutil.rmtree(config_dir)
     cmdargs = config.instantiate(configs_context)
     if cache_requests:
         # A relative path is expected!

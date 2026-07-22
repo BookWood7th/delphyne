@@ -57,6 +57,9 @@ type KitModelName = Literal[
     "azure.gpt-5.1",
     "azure.gpt-5.4",
     "azure.gpt-5.5",
+    "azure.gpt-5.6-luna",
+    "azure.gpt-5.6-terra",
+    "azure.gpt-5.6-sol",
     "kit.gpt-oss-120b",
     "kit.flux.2-dev",
     "kit.qwen3-embedding-8b",
@@ -118,7 +121,10 @@ PRICING: dict[str, tuple[float, float, float]] = {
     "azure.gpt-5-nano": (0.06, 0.006, 0.44),
     "azure.gpt-5.1": (1.38, 0.138, 11.00),
     "azure.gpt-5.4": (2.76, 0.276, 16.50),
-    "azure.gpt-5.5": (5.50, 0.55, 33.00),
+    "azure.gpt-5.5": (5.50, 0.55, 33.00),    
+    "azure.gpt-5.6-luna": (1.10, 0.11, 6.60),
+    "azure.gpt-5.6-terra": (2.75, 0.275, 16.50),
+    "azure.gpt-5.6-sol": (5.50, 0.55, 33.00),
 
     "claude-fable-5": (10, 1, 50),
     "claude-mythos-5": (10, 1, 50),
@@ -366,7 +372,7 @@ def standard_model(
     *,
     pricing: md.ModelPricing | None | Literal["auto"] = "auto",
     model_class: str | None = None,
-) -> OpenAICompatibleModel:
+) -> OpenAICompatibleModel | ClaudeCompatibleModel:
     """
     Obtain a standard model from OpenAI, Mistral, DeepSeek or Gemini.
 
